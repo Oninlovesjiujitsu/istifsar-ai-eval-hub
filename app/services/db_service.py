@@ -1,9 +1,12 @@
 from supabase import create_client, Client
 from app.core.config import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 def get_supabase_client() -> Client | None:
     if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_KEY:
-        print("WARNING: Supabase credentials are not set. Database updates will be skipped.")
+        logger.warning("Supabase credentials are not set. Database updates will be skipped.")
         return None
         
     # We use the SERVICE_ROLE key here because this is a trusted backend microservice.
@@ -30,8 +33,8 @@ def update_evaluation_scores(record_id: str, scores: dict):
             .eq("id", record_id)
             .execute()
         )
-        print(f"Supabase update successful for record {record_id}")
+        logger.info(f"Supabase update successful for record {record_id}")
         return {"status": "success", "data": response.data}
     except Exception as e:
-        print(f"Failed to update Supabase for record {record_id}: {e}")
+        logger.error(f"Failed to update Supabase for record {record_id}: {e}")
         return {"status": "error", "error": str(e)}

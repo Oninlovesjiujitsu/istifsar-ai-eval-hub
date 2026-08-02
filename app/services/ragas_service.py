@@ -7,18 +7,20 @@ from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmb
 from app.models.schemas import TracePayload
 from app.core.config import settings
 import google.generativeai as genai
+import logging
+
+logger = logging.getLogger(__name__)
 
 def setup_ragas_and_mlflow():
     # Initialize Gemini LLM and Embeddings for Ragas (Ragas uses LangChain underneath)
     if settings.GOOGLE_API_KEY:
         genai.configure(api_key=settings.GOOGLE_API_KEY)
-        # Using gemini-1.5-pro as it's the strongest reasoning model available in the free tier
         llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=settings.GOOGLE_API_KEY)
         embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001", google_api_key=settings.GOOGLE_API_KEY)
     else:
         llm = None
         embeddings = None
-        print("WARNING: GOOGLE_API_KEY is not set. Ragas evaluation will fail.")
+        logger.warning("GOOGLE_API_KEY is not set. Ragas evaluation will fail.")
 
     # Configure MLflow to point to DagsHub
     if settings.MLFLOW_TRACKING_URI:
@@ -27,7 +29,7 @@ def setup_ragas_and_mlflow():
         mlflow.set_tracking_uri(settings.MLFLOW_TRACKING_URI)
         mlflow.set_experiment("Istifsar_AI_Evaluations")
     else:
-        print("WARNING: MLFLOW_TRACKING_URI is not set. Metrics will not be logged remotely.")
+        logger.warning("MLFLOW_TRACKING_URI is not set. Metrics will not be logged remotely.")
         
     return llm, embeddings
 
@@ -87,11 +89,11 @@ def evaluate_trace_with_ragas(payload: TracePayload) -> dict:
             
             # Log metrics to DagsHub
             mlflow.log_metrics(scores)
-            print(f"Evaluation complete for {payload.record_id}. Scores: {scores}")
+            logger.info(f"Evaluation complete for {payload.record_id}. Scores: {scores}")
             
             return scores
             
         except Exception as e:
-            print(f"Error during Ragas evaluation: {e}")
+            logger.error(f"Error during Ragas evaluation: {e}")
             mlflow.log_param("error", str(e))
             return {"error": str(e)}

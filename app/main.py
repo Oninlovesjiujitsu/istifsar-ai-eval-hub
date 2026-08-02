@@ -1,6 +1,12 @@
 from fastapi import FastAPI
 from app.api import endpoints
 from app.core.config import settings
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
