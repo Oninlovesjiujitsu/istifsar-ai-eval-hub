@@ -74,3 +74,11 @@ To run the project in your local environment, follow these steps:
    ```bash
    npx localtunnel --port 8000
    ```
+
+## ☁️ Deployment Considerations (Free Tiers)
+
+If you deploy this microservice to a free tier hosting provider (like Render or Railway), the server will automatically "spin down" after a period of inactivity.
+
+**The Cold Start Problem:** When a user flags a message, the free-tier backend might take 50+ seconds to wake up from sleep, which normally causes standard HTTP requests to timeout and fail. 
+
+**The QStash Solution:** Because this architecture relies on Upstash QStash, **cold starts are not an issue**. QStash automatically handles timeouts and retries the webhook delivery using exponential backoff. You will never lose an evaluation payload; the very first evaluation after inactivity will just take an extra minute to appear in Supabase while the server boots up.
