@@ -75,10 +75,23 @@ To run the project in your local environment, follow these steps:
    npx localtunnel --port 8000
    ```
 
-## ☁️ Deployment Considerations (Free Tiers)
+## ☁️ Deployment Guide (Render / Production)
 
-If you deploy this microservice to a free tier hosting provider (like Render or Railway), the server will automatically "spin down" after a period of inactivity.
+When deploying `istifsar-ai-eval-hub` to Render as a Web Service:
 
-**The Cold Start Problem:** When a user flags a message, the free-tier backend might take 50+ seconds to wake up from sleep, which normally causes standard HTTP requests to timeout and fail. 
+### 1. Render Web Service Configuration
+- **Runtime:** `Python 3`
+- **Build Command:** `pip install --no-cache-dir -r requirements.txt`
+- **Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 
-**The QStash Solution:** Because this architecture relies on Upstash QStash, **cold starts are not an issue**. QStash automatically handles timeouts and retries the webhook delivery using exponential backoff. You will never lose an evaluation payload; the very first evaluation after inactivity will just take an extra minute to appear in Supabase while the server boots up.
+### 2. Environment Variables to Set on Render Dashboard
+- `PYTHON_VERSION` = `3.10.12`
+- `GOOGLE_API_KEY` = *your_gemini_api_key*
+- `SUPABASE_URL` = *your_supabase_project_url*
+- `SUPABASE_SERVICE_KEY` = *your_supabase_service_role_key*
+- `QSTASH_CURRENT_SIGNING_KEY` = *your_qstash_current_signing_key*
+- `QSTASH_NEXT_SIGNING_KEY` = *your_qstash_next_signing_key*
+
+### 3. The Cold Start Solution
+Because this microservice is triggered asynchronously via **Upstash QStash**, Render free-tier cold starts (50+ seconds) **will not drop or fail evaluations**. QStash automatically retries webhooks until the microservice boots up and processes the payload.
+
