@@ -3,13 +3,9 @@ uvicorn
 gunicorn
 pydantic
 pydantic-settings
-mlflow
+mlflow-skinny
 ragas
 qstash
 supabase
 langchain-google-genai
 google-generativeai
-langchain-community<0.3.0
-langchain-google-vertexai
-matplotlib>=3.8.0
-
